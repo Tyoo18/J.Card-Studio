@@ -7,6 +7,10 @@ type JCardProps = {
 };
 
 export default function JCard({ data, index }: JCardProps) {
+  // [UTIL]: Mapping warna teks kontras berdasarkan background
+  const textColor = data.text || "#e4ded2";
+  const borderStyle = { borderColor: `${textColor}22` };
+
   return (
     <>
       <div
@@ -20,34 +24,34 @@ export default function JCard({ data, index }: JCardProps) {
         />
       </div>
       <div
-        className="p-6 flex grow flex-col justify-between"
-        style={{ background: data.bg, color: data.text }}
+        className="p-6 flex grow flex-col justify-between font-mono"
+        style={{ background: data.bg, color: textColor }}
       >
         <div>
           <div
-            className="font-mono text-[9px] tracking-[2px] opacity-40 border-b pb-2.5 mb-3.5 flex justify-between uppercase"
-            style={{ borderColor: `${data.text}22` }}
+            className="text-[9px] tracking-[2px] opacity-40 border-b pb-2.5 mb-3.5 flex justify-between uppercase"
+            style={borderStyle}
           >
             <span>NR SYSTEM [B]</span>
             <span>STEREO</span>
           </div>
           <div>
-            <h1 className="serif-title text-[26px] leading-[1.1] tracking-tight mb-1">
+            <h1 className="serif-title text-[24px] leading-[1.1] tracking-tight mb-1 font-normal">
               {data.title}
             </h1>
             <p
               className="font-sans text-[11px] font-light uppercase tracking-wider"
-              style={{ color: `${data.text}88` }}
+              style={{ color: `${textColor}88` }}
             >
               {data.artist}
             </p>
           </div>
-          <ul className="font-mono text-[10px] list-none flex flex-col gap-1.5 mt-3.5 opacity-75">
-            {data.tracks.map((track, i) => (
+          <ul className="text-[10px] list-none flex flex-col gap-1.5 mt-4 opacity-75">
+            {data.tracks.slice(0, 4).map((track, i) => (
               <li
-                key={track}
+                key={i}
                 className="flex justify-between border-b border-dashed pb-1"
-                style={{ borderColor: `${data.text}22` }}
+                style={borderStyle}
               >
                 <span className={styles.trackTitle}>
                   0{i + 1}. {track}
@@ -57,8 +61,8 @@ export default function JCard({ data, index }: JCardProps) {
           </ul>
         </div>
         <div
-          className="flex justify-between font-mono text-[8px] tracking-wider opacity-30 mt-auto uppercase"
-          style={{ color: `${data.text}55` }}
+          className="flex justify-between text-[8px] tracking-wider opacity-30 mt-auto uppercase"
+          style={{ color: `${textColor}55` }}
         >
           <span>CAT-{1000 + Number(index)}</span>
           <span>DOLBY B</span>

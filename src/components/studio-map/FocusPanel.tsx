@@ -10,10 +10,9 @@ type FocusPanelProps = {
 
 function getTitleFontSize(title: string): string {
   const len = title.length;
-  if (len > 22) return "32px";
-  if (len > 16) return "42px";
-  if (len > 11) return "52px";
-  return "64px";
+  if (len > 22) return "28px";
+  if (len > 16) return "36px";
+  return "46px";
 }
 
 const FocusPanel = forwardRef<HTMLDivElement, FocusPanelProps>(
@@ -21,19 +20,23 @@ const FocusPanel = forwardRef<HTMLDivElement, FocusPanelProps>(
     return (
       <div
         ref={ref}
-        className={`fixed bottom-8 w-115 h-screen py-15 flex flex-col justify-center z-100
-    transition-all duration-850 ease-out
-    ${isFocused ? "translate-x-0 opacity-100 pointer-events-auto" : "translate-x-15 opacity-0 pointer-events-none"}`}
+        className={`fixed bottom-0 right-12 w-100 h-screen py-20 flex flex-col justify-center z-100
+        transition-all duration-855 ease-out font-mono
+        ${isFocused ? "translate-x-0 opacity-100 pointer-events-auto" : "translate-x-12 opacity-0 pointer-events-none"}`}
       >
         {album && (
           <>
-            <div className="flex items-center justify-between">
-              <div className="font-mono text-[10px] tracking-[2px] text-[#e4ded24d] uppercase"></div>
+            <div className="flex items-center justify-between mb-4">
+              <div className="text-[10px] tracking-[2px] text-[#e4ded24d] uppercase">
+                {album.isRealData
+                  ? "DEEZER DIGITAL ARCHIVE"
+                  : "LOCAL CACHED ARCHIVE"}
+              </div>
               <button
                 onClick={onClose}
-                onMouseDown={(e) => e.stopPropagation()} // <-- tambahan
+                onMouseDown={(e) => e.stopPropagation()}
                 aria-label="Close focus panel"
-                className="w-6 h-6 flex items-center justify-center border border-[#e4ded226] rounded-sm text-[#e4ded280] hover:text-[#e4ded2] hover:border-[#e4ded24d] transition-colors cursor-pointer shrink-0 pointer-events-auto"
+                className="w-6 h-6 flex items-center justify-center border border-[#e4ded226] rounded-xs text-[#e4ded280] hover:text-[#e4ded2] hover:border-[#e4ded24d] transition-colors cursor-pointer shrink-0"
               >
                 <svg
                   width="10"
@@ -49,7 +52,7 @@ const FocusPanel = forwardRef<HTMLDivElement, FocusPanelProps>(
             </div>
 
             <h1
-              className="serif-title leading-[1.05] mb-2"
+              className="serif-title leading-[1.1] mb-2 font-normal text-[#e4ded2]"
               style={{
                 fontSize: getTitleFontSize(album.title),
                 textWrap: "balance",
@@ -57,38 +60,30 @@ const FocusPanel = forwardRef<HTMLDivElement, FocusPanelProps>(
             >
               {album.title}
             </h1>
-            <h3 className="font-sans text-sm uppercase tracking-[2px] font-normal text-[#e4ded280] mb-4">
+            <h3 className="font-sans text-xs uppercase tracking-[2px] font-normal text-[#e4ded280] mb-6">
               {album.artist}
             </h3>
-            <hr className="border-none h-px bg-[#e4ded21a] mb-4" />
-            <div className="font-mono text-[10px] tracking-[1.5px] text-[#e4ded24d] uppercase mb-4.5">
+            <hr className="border-none h-px bg-[#e4ded21a] mb-6" />
+
+            <div className="text-[10px] tracking-[1.5px] text-[#e4ded24d] uppercase mb-4">
               Tracklist Content
             </div>
             <div
-              className={`flex flex-col gap-2 max-h-32 overflow-y-auto pr-2.5 ${styles.tracklistContainer}`}
+              className={`flex flex-col gap-2 max-h-[340px] overflow-y-auto pr-2 ${styles.tracklistContainer}`}
             >
               {album.tracks.map((track, idx) => (
                 <div
-                  key={track}
-                  className="group flex items-center justify-between h-14.5 px-5 bg-white/1.5 border border-white/3 rounded transition-colors hover:bg-white/4 hover:border-[#e4ded226]"
+                  key={idx}
+                  className="group flex items-center justify-between h-13 px-4 bg-white/2 border border-white/5 rounded-xs transition-colors hover:bg-white/5"
                 >
-                  <div className="flex items-center font-mono text-[11px] tracking-wide uppercase">
-                    <span className="text-[#e4ded240] mr-4.5 text-[10px]">
-                      0{idx + 1}
+                  <div className="flex items-center text-[11px] tracking-wide uppercase">
+                    <span className="text-[#e4ded240] mr-4 text-[10px]">
+                      {idx < 9 ? `0${idx + 1}` : idx + 1}
                     </span>
-                    <span className="font-normal text-[#e4ded2d9]">
+                    <span className="font-normal text-[#e4ded2d9] text-ellipsis overflow-hidden max-w-64 white-space-nowrap">
                       {track}
                     </span>
                   </div>
-                  <svg
-                    className="w-3 h-3 opacity-30 transition-opacity group-hover:opacity-85"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth={2}
-                  >
-                    <polygon points="5 3 19 12 5 21 5 3" fill="currentColor" />
-                  </svg>
                 </div>
               ))}
             </div>
@@ -100,5 +95,4 @@ const FocusPanel = forwardRef<HTMLDivElement, FocusPanelProps>(
 );
 
 FocusPanel.displayName = "FocusPanel";
-
 export default FocusPanel;
