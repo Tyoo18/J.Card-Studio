@@ -15,8 +15,7 @@ export default function Navbar({ focused, onAddTape }: NavbarProps) {
         <span className="opacity-40 mr-2">ARCHIVE //</span> STUDIO MAP
       </div>
       <div className="font-mono text-[10px] tracking-[1.5px] opacity-40 uppercase flex items-center gap-2">
-        <span className="text-[#e4ded299]">INFO //</span> click any item to
-        expand archive
+        click any tape to see track
       </div>
       <button
         onClick={onAddTape}
@@ -24,7 +23,7 @@ export default function Navbar({ focused, onAddTape }: NavbarProps) {
           tracking-[1px] uppercase rounded-sm cursor-pointer transition-all
           hover:bg-[#e4ded2] hover:text-[#060608] hover:border-[#e4ded2]"
       >
-        Add Random Artifact
+        Add Tape
       </button>
     </nav>
   );

@@ -1,24 +1,51 @@
 "use client";
 
-import { useState } from "react";
 import Navbar from "./Navbar";
 import HeroHeader from "./HeroHeader";
+import FocusPanel from "./FocusPanel";
 import CassetteTape from "./CassetteTape";
 import { albumDataset } from "./data";
 import { useStudioMapEngine } from "./useStudioMapEngine";
 
 export default function StudioMap() {
-  const [focused, setFocused] = useState(false);
-  const { viewportRef, canvasRef, tapes, addRandomTape } = useStudioMapEngine();
+  const {
+    viewportRef,
+    canvasRef,
+    focusPanelRef,
+    tapes,
+    isFocused,
+    focusedAlbum,
+    addRandomTape,
+    focusTape,
+    resetTapeFocus,
+  } = useStudioMapEngine();
 
   return (
     <>
-      <Navbar focused={focused} onAddTape={addRandomTape} />
-      <HeroHeader focused={focused} />
+      <div
+        className={`fixed inset-0 pointer-events-none z-10 transition-opacity duration-1000
+    ${isFocused ? "opacity-100" : "opacity-0"}`}
+        style={{
+          background: isFocused
+            ? "radial-gradient(circle at 30% center, transparent 0%, rgba(6,6,8,0.3) 30%, rgba(4,4,6,0.7) 60%, rgba(4,4,6,0.98) 100%)"
+            : "radial-gradient(circle at center, transparent 20%, rgba(6,6,8,0.92) 100%)",
+        }}
+      />
+
+      <Navbar focused={isFocused} onAddTape={addRandomTape} />
+      <HeroHeader focused={isFocused} />
+      <FocusPanel
+        ref={focusPanelRef}
+        isFocused={isFocused}
+        album={focusedAlbum}
+        onClose={resetTapeFocus}
+      />
 
       <div
         ref={viewportRef}
-        className="w-screen h-screen overflow-hidden relative cursor-grab active:cursor-grabbing"
+        className={`w-screen h-screen overflow-hidden relative ${
+          isFocused ? "cursor-default" : "cursor-grab active:cursor-grabbing"
+        }`}
       >
         <div
           ref={canvasRef}
@@ -37,7 +64,7 @@ export default function StudioMap() {
               left={tape.left}
               top={tape.top}
               rotation={tape.rotation}
-              onClick={() => console.log("focus tape - TODO step 4", tape.id)}
+              onFocus={focusTape}
             />
           ))}
         </div>

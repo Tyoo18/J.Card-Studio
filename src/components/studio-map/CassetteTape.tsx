@@ -1,7 +1,18 @@
-import { useMemo } from "react";
+import { useMemo, useRef } from "react";
 import type { Album } from "./data";
 import JCard from "./JCard";
 import styles from "./studio-map.module.css";
+
+export type TapeFocusPayload = {
+  wrapper: HTMLDivElement;
+  card: HTMLDivElement;
+  shine: HTMLDivElement;
+  data: Album;
+  index: number;
+  baseLeft: number;
+  baseTop: number;
+  baseRotation: number;
+};
 
 type CassetteTapeProps = {
   data: Album;
@@ -9,7 +20,7 @@ type CassetteTapeProps = {
   left: number;
   top: number;
   rotation: number;
-  onClick: () => void;
+  onFocus: (payload: TapeFocusPayload) => void;
 };
 
 const SLICE_COUNT = 30;
@@ -22,9 +33,12 @@ export default function CassetteTape({
   left,
   top,
   rotation,
-  onClick,
+  onFocus,
 }: CassetteTapeProps) {
-  // Depth slices only depend on the album's base color — compute once per album.
+  const wrapperRef = useRef<HTMLDivElement>(null);
+  const cardRef = useRef<HTMLDivElement>(null);
+  const shineRef = useRef<HTMLDivElement>(null);
+
   const slices = useMemo(() => {
     const hex = data.bg.replace("#", "");
     const rBase = parseInt(hex.substring(0, 2), 16);
@@ -42,18 +56,29 @@ export default function CassetteTape({
     });
   }, [data.bg]);
 
+  const handleClick = () => {
+    if (!wrapperRef.current || !cardRef.current || !shineRef.current) return;
+    onFocus({
+      wrapper: wrapperRef.current,
+      card: cardRef.current,
+      shine: shineRef.current,
+      data,
+      index,
+      baseLeft: left,
+      baseTop: top,
+      baseRotation: rotation,
+    });
+  };
+
   return (
-    <div
-      className={styles.dummyTape}
-      style={{ left, top }}
-      data-tape-index={index}
-    >
+    <div ref={wrapperRef} className={styles.dummyTape} style={{ left, top }}>
       <div
+        ref={cardRef}
         className={styles.cassetteCard}
         style={{ transform: `rotateZ(${rotation}deg) scaleZ(0.001)` }}
         onClick={(e) => {
           e.stopPropagation();
-          onClick();
+          handleClick();
         }}
       >
         <div className={`${styles.outerSide} ${styles.outerSideTop}`} />
@@ -62,7 +87,7 @@ export default function CassetteTape({
         <div className={`${styles.outerSide} ${styles.outerSideRight}`} />
         <div className={styles.outerBack} />
         <div className={styles.outerFront}>
-          <div className={styles.shineOverlay} />
+          <div ref={shineRef} className={styles.shineOverlay} />
         </div>
 
         <div className={styles.innerBlock}>
