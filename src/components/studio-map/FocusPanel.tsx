@@ -21,13 +21,13 @@ const FocusPanel = forwardRef<HTMLDivElement, FocusPanelProps>(
     return (
       <div
         ref={ref}
-        className={`fixed top-0 w-115 h-screen py-15 flex flex-col justify-center z-100
+        className={`fixed bottom-8 w-115 h-screen py-15 flex flex-col justify-center z-100
     transition-all duration-850 ease-out
     ${isFocused ? "translate-x-0 opacity-100 pointer-events-auto" : "translate-x-15 opacity-0 pointer-events-none"}`}
       >
         {album && (
           <>
-            <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center justify-between">
               <div className="font-mono text-[10px] tracking-[2px] text-[#e4ded24d] uppercase"></div>
               <button
                 onClick={onClose}
@@ -57,10 +57,10 @@ const FocusPanel = forwardRef<HTMLDivElement, FocusPanelProps>(
             >
               {album.title}
             </h1>
-            <h3 className="font-sans text-sm uppercase tracking-[2px] font-normal text-[#e4ded280] mb-8">
+            <h3 className="font-sans text-sm uppercase tracking-[2px] font-normal text-[#e4ded280] mb-4">
               {album.artist}
             </h3>
-            <hr className="border-none h-px bg-[#e4ded21a] mb-8" />
+            <hr className="border-none h-px bg-[#e4ded21a] mb-4" />
             <div className="font-mono text-[10px] tracking-[1.5px] text-[#e4ded24d] uppercase mb-4.5">
               Tracklist Content
             </div>

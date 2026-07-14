@@ -82,6 +82,7 @@ export function useStudioMapEngine() {
     focusPanel.style.left = `${leftMargin + tapeWidth3D + FOCUS_GAP}px`;
   }, []);
 
+  // [HANDLER]: Animate and calculate dynamic zoom centering layout matrix when tape is clicked
   const focusTape = useCallback(
     (payload: TapeFocusPayload) => {
       if (activeTapeRef.current || isTransitioning.current) return;
@@ -106,6 +107,7 @@ export function useStudioMapEngine() {
 
       calculateFocusPosition();
 
+      // [STYLE]: Now smoothly glides the canvas matrix using global class fix
       canvasRef.current?.classList.add(styles.smoothTransition);
       updateTransform();
 
@@ -121,6 +123,7 @@ export function useStudioMapEngine() {
     [calculateFocusPosition],
   );
 
+  // [HANDLER]: Reset active focus layout coordinate back to previous state values
   const resetTapeFocus = useCallback(() => {
     const active = activeTapeRef.current;
     if (!active || isTransitioning.current) return;
@@ -140,6 +143,10 @@ export function useStudioMapEngine() {
     setTimeout(() => {
       active.wrapper.classList.remove(styles.isActiveFocus);
       canvasRef.current?.classList.remove(styles.smoothTransition);
+
+      // [UTIL]: Crucial fix - Clear inline element transform attributes to hand control back to stylesheet for smooth hover state manipulation
+      active.card.style.transform = "";
+
       activeTapeRef.current = null;
       setFocusedAlbum(null);
       isTransitioning.current = false;
