@@ -45,3 +45,15 @@ export const albumDataset: Album[] = [
     tracks: ["Resonance Frequency", "Lost In Tokyo", "Closing Loop"],
   },
 ];
+
+export type TapeInstance = {
+  id: string;
+  index: number; // tapeCount at spawn time, used for CAT-#### label
+  col: number;
+  row: number;
+  left: number;
+  top: number;
+  rotation: number;
+  isAnchor: boolean;
+  albumIndex: number;
+};

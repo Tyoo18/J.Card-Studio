@@ -3,18 +3,17 @@
 import { useState } from "react";
 import Navbar from "./Navbar";
 import HeroHeader from "./HeroHeader";
+import CassetteTape from "./CassetteTape";
+import { albumDataset } from "./data";
 import { useStudioMapEngine } from "./useStudioMapEngine";
 
 export default function StudioMap() {
   const [focused, setFocused] = useState(false);
-  const { viewportRef, canvasRef } = useStudioMapEngine();
+  const { viewportRef, canvasRef, tapes, addRandomTape } = useStudioMapEngine();
 
   return (
     <>
-      <Navbar
-        focused={focused}
-        onAddTape={() => console.log("add tape - TODO")}
-      />
+      <Navbar focused={focused} onAddTape={addRandomTape} />
       <HeroHeader focused={focused} />
 
       <div
@@ -30,7 +29,17 @@ export default function StudioMap() {
             backgroundSize: "40px 40px",
           }}
         >
-          {/* tapes akan di-render di sini pada step berikutnya */}
+          {tapes.map((tape) => (
+            <CassetteTape
+              key={tape.id}
+              data={albumDataset[tape.albumIndex]}
+              index={tape.index}
+              left={tape.left}
+              top={tape.top}
+              rotation={tape.rotation}
+              onClick={() => console.log("focus tape - TODO step 4", tape.id)}
+            />
+          ))}
         </div>
       </div>
     </>
