@@ -3,9 +3,11 @@
 import { useState } from "react";
 import Navbar from "./Navbar";
 import HeroHeader from "./HeroHeader";
+import { useStudioMapEngine } from "./useStudioMapEngine";
 
 export default function StudioMap() {
   const [focused, setFocused] = useState(false);
+  const { viewportRef, canvasRef } = useStudioMapEngine();
 
   return (
     <>
@@ -15,8 +17,12 @@ export default function StudioMap() {
       />
       <HeroHeader focused={focused} />
 
-      <div className="w-screen h-screen overflow-hidden relative cursor-grab active:cursor-grabbing">
+      <div
+        ref={viewportRef}
+        className="w-screen h-screen overflow-hidden relative cursor-grab active:cursor-grabbing"
+      >
         <div
+          ref={canvasRef}
           className="w-[5000px] h-[5000px] absolute origin-top-left bg-[#060608]"
           style={{
             backgroundImage:
