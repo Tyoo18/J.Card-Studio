@@ -9,9 +9,10 @@ type FocusPanelProps = {
   onClose: () => void;
   fullTracks?: DeezerTrack[];
   favoriteTrackNumbers?: number[];
-  onToggleFavorite?: (trackNumber: number) => void;
+  onToggleFavorite?: (track: DeezerTrack) => void;
 };
 
+// [UTIL]: Kalkulasi ukuran font judul secara dinamis
 function getTitleFontSize(title: string): string {
   const len = title.length;
   if (len > 22) return "32px";
@@ -37,12 +38,12 @@ const FocusPanel = forwardRef<HTMLDivElement, FocusPanelProps>(
     const isRealTrackData = !!fullTracks;
 
     return (
+      // [STYLE]: Fix z-[100] untuk block canvas click-through & manajemen interaksi kursor mouse
       <div
         ref={ref}
-        onMouseDown={(e) => e.stopPropagation()} // 🔥 CEGAH event sampai ke window
-        className={`fixed top-0 w-115 h-screen py-15 flex flex-col justify-center z-100
-          transition-all duration-850 ease-out translate-x-15 opacity-0 pointer-events-none
-          ${isFocused ? "translate-x-0 opacity-100 pointer-events-auto" : ""}`}
+        className={`fixed top-1/2 -translate-y-1/2 w-115 h-fit max-h-[85vh] py-8 flex flex-col justify-center z-900
+          transition-all duration-850 ease-out opacity-0 pointer-events-none
+          ${isFocused ? "translate-x-0 opacity-100 pointer-events-auto" : "translate-x-15"}`}
       >
         {album && (
           <>
@@ -52,7 +53,6 @@ const FocusPanel = forwardRef<HTMLDivElement, FocusPanelProps>(
               </div>
               <button
                 onClick={onClose}
-                onMouseDown={(e) => e.stopPropagation()}
                 aria-label="Close focus panel"
                 className="w-6 h-6 flex items-center justify-center border border-[#e4ded226]
                   rounded-sm text-[#e4ded280] hover:text-[#e4ded2] hover:border-[#e4ded24d]
@@ -80,10 +80,10 @@ const FocusPanel = forwardRef<HTMLDivElement, FocusPanelProps>(
             >
               {album.title}
             </h1>
-            <h3 className="font-sans text-sm uppercase tracking-[2px] font-normal text-[#e4ded280] mb-8">
+            <h3 className="font-sans text-sm uppercase tracking-[2px] font-normal text-[#e4ded280] mb-4">
               {album.artist}
             </h3>
-            <hr className="border-none h-px bg-[#e4ded21a] mb-8" />
+            <hr className="border-none h-px bg-[#e4ded21a] mb-4" />
 
             <div className="flex items-center justify-between mb-4.5">
               <div className="font-mono text-[10px] tracking-[1.5px] text-[#e4ded24d] uppercase">
@@ -96,19 +96,19 @@ const FocusPanel = forwardRef<HTMLDivElement, FocusPanelProps>(
               )}
             </div>
 
+            {/* [STYLE]: max-h-[176px] diset presisi memotong lagu ke-4 di tengah jalan sebagai visual hint scroll */}
             <div
-              className={`flex flex-col gap-2 overflow-y-auto pr-2.5 ${styles.tracklistContainer}`}
-              style={{ maxHeight: "190px" }}
+              className={`flex flex-col gap-2 overflow-y-auto pr-2.5 max-h-44 mb-5 ${styles.tracklistContainer}`}
             >
               {isRealTrackData
                 ? fullTracks!.map((track) => {
                     const isFav = favorites.includes(track.trackNumber);
                     const disabled = atCap && !isFav;
                     return (
+                      // [RENDER]: Baris lagu dibuat lebih ramping (h-11) demi estetika layout premium
                       <div
                         key={track.trackNumber}
-                        onMouseDown={(e) => e.stopPropagation()}
-                        className="shrink-0 flex items-center justify-between h-14.5 px-5 bg-white/1.5 border border-white/3 rounded transition-colors hover:bg-white/4 hover:border-[#e4ded226]"
+                        className="shrink-0 flex items-center justify-between h-11 px-4 bg-white/1.5 border border-white/3 rounded transition-colors hover:bg-white/4 hover:border-[#e4ded226]"
                       >
                         <div className="flex items-center font-mono text-[11px] tracking-wide uppercase overflow-hidden">
                           <span className="text-[#e4ded240] mr-4.5 text-[10px] shrink-0">
@@ -123,11 +123,8 @@ const FocusPanel = forwardRef<HTMLDivElement, FocusPanelProps>(
                             {track.duration}
                           </span>
                           <button
-                            onMouseDown={(e) => e.stopPropagation()}
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              if (!disabled)
-                                onToggleFavorite?.(track.trackNumber);
+                            onClick={() => {
+                              if (!disabled) onToggleFavorite?.(track);
                             }}
                             disabled={disabled}
                             type="button"
@@ -163,8 +160,7 @@ const FocusPanel = forwardRef<HTMLDivElement, FocusPanelProps>(
                 : album.tracks.map((track, idx) => (
                     <div
                       key={track}
-                      onMouseDown={(e) => e.stopPropagation()}
-                      className="shrink-0 flex items-center justify-between h-14.5 px-5 bg-white/1.5 border border-white/3 rounded transition-colors hover:bg-white/4 hover:border-[#e4ded226]"
+                      className="shrink-0 flex items-center justify-between h-11 px-4 bg-white/1.5 border border-white/3 rounded transition-colors hover:bg-white/4 hover:border-[#e4ded226]"
                     >
                       <div className="flex items-center font-mono text-[11px] tracking-wide uppercase">
                         <span className="text-[#e4ded240] mr-4.5 text-[10px]">
