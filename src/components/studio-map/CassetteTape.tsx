@@ -1,4 +1,3 @@
-// src/components/studio-map/CassetteTape.tsx
 import { useMemo, useRef } from "react";
 import type { Album } from "./data";
 import JCard from "./JCard";
@@ -22,6 +21,8 @@ type CassetteTapeProps = {
   top: number;
   rotation: number;
   onFocus: (payload: TapeFocusPayload) => void;
+  isPulsing?: boolean;
+  isInteractionLocked?: boolean;
 };
 
 const SLICE_COUNT = 30;
@@ -35,12 +36,13 @@ export default function CassetteTape({
   top,
   rotation,
   onFocus,
+  isPulsing,
+  isInteractionLocked,
 }: CassetteTapeProps) {
   const wrapperRef = useRef<HTMLDivElement>(null);
   const cardRef = useRef<HTMLDivElement>(null);
   const shineRef = useRef<HTMLDivElement>(null);
 
-  // [CALC]: Calculate dinamic 3D slices color shifting based on background hex code
   const slices = useMemo(() => {
     const hex = data.bg.replace("#", "");
     const rBase = parseInt(hex.substring(0, 2), 16);
@@ -58,7 +60,6 @@ export default function CassetteTape({
     });
   }, [data.bg]);
 
-  // [HANDLER]: Trigger active focus callback layout parameters to the engine hook
   const handleClick = () => {
     if (!wrapperRef.current || !cardRef.current || !shineRef.current) return;
     onFocus({
@@ -74,12 +75,22 @@ export default function CassetteTape({
   };
 
   return (
-    <div ref={wrapperRef} className={styles.dummyTape} style={{ left, top }}>
-      {/* [RENDER]: Inject rotation parameter via CSS Custom Properties to enable seamless CSS hover transition override */}
+    <div
+      ref={wrapperRef}
+      className={styles.dummyTape}
+      style={{
+        left,
+        top,
+        pointerEvents: isInteractionLocked ? "none" : "auto",
+      }}
+    >
       <div
         ref={cardRef}
-        className={styles.cassetteCard}
-        style={{ "--base-rotation": `${rotation}deg` } as React.CSSProperties}
+        className={`${styles.cassetteCard} ${isPulsing ? styles.tapePulse : ""}`}
+        style={{
+          transform: `rotateZ(${rotation}deg) scaleZ(0.001)`,
+          ["--base-rotation" as any]: `${rotation}deg`,
+        }}
         onClick={(e) => {
           e.stopPropagation();
           handleClick();

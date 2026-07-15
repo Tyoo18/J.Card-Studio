@@ -7,7 +7,6 @@ type JCardProps = {
 };
 
 export default function JCard({ data, index }: JCardProps) {
-  // [UTIL]: Mapping warna teks kontras berdasarkan background
   const textColor = data.text || "#e4ded2";
   const borderStyle = { borderColor: `${textColor}22` };
 
@@ -46,15 +45,18 @@ export default function JCard({ data, index }: JCardProps) {
               {data.artist}
             </p>
           </div>
-          <ul className="text-[10px] list-none flex flex-col gap-1.5 mt-4 opacity-75">
-            {data.tracks.slice(0, 4).map((track, i) => (
+          <ul
+            className={`font-mono text-[10px] list-none flex flex-col gap-1.5 mt-3.5 opacity-75 overflow-y-auto pr-1 ${styles.tracklistContainer}`}
+            style={{ maxHeight: "100px" }}
+          >
+            {data.tracks.map((track, idx) => (
               <li
-                key={i}
-                className="flex justify-between border-b border-dashed pb-1"
-                style={borderStyle}
+                key={track}
+                className="shrink-0 flex justify-between border-b border-dashed pb-1"
+                style={{ borderColor: `${data.text}22` }}
               >
                 <span className={styles.trackTitle}>
-                  0{i + 1}. {track}
+                  0{idx + 1}. {track}
                 </span>
               </li>
             ))}

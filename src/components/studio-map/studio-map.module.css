@@ -1,4 +1,4 @@
-/* src/components/studio-map/studio-map.module.css */
+/* studio-map.module.css */
 
 .dummyTape {
   position: absolute;
@@ -18,17 +18,14 @@
   height: 100%;
   cursor: pointer;
   transform-style: preserve-3d;
-  /* [STYLE]: Initialize dynamic base rotation from CSS Variable for performance optimization */
   transform: rotateZ(var(--base-rotation, 0deg)) scaleZ(0.001);
   transition: transform 0.85s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-/* [STYLE]: Smooth hover transition to flatten the rotation to 0deg, isolated only when not focused */
 .dummyTape:not(.isActiveFocus):hover .cassetteCard {
   transform: rotateZ(0deg) scaleZ(0.001) !important;
 }
 
-/* [STYLE]: Global transition utility for canvas zooming and centering animation */
 .smoothTransition {
   transition: transform 0.85s cubic-bezier(0.16, 1, 0.3, 1) !important;
 }
@@ -205,4 +202,20 @@
 .tracklistContainer::-webkit-scrollbar-thumb {
   background: rgba(228, 222, 210, 0.15);
   border-radius: 2px;
+}
+
+@keyframes tapePulseRotate {
+  0% {
+    transform: rotateZ(var(--base-rotation)) scaleZ(0.001);
+  }
+  40% {
+    transform: rotateZ(0deg) scaleZ(0.001);
+  }
+  100% {
+    transform: rotateZ(var(--base-rotation)) scaleZ(0.001);
+  }
+}
+
+.tapePulse {
+  animation: tapePulseRotate 1s ease;
 }

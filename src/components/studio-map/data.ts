@@ -1,12 +1,12 @@
-// [INIT]: Format tipe data album bawaan studio map + support real Deezer metadata
 export type Album = {
   title: string;
   artist: string;
   bg: string;
   text: string;
   cover: string;
-  tracks: string[]; // Diubah jadi array dinamis string agar fleksibel dibanding tuple 3 track
+  tracks: string[];
   isRealData?: boolean;
+  albumId?: string;
 };
 
 export const albumDataset: Album[] = [
@@ -48,7 +48,21 @@ export const albumDataset: Album[] = [
   },
 ];
 
-// [INIT]: Data koordinat instance kaset di canvas, sekarang dibekali metadata lagu real
+export interface DeezerAlbum {
+  albumId: string;
+  artistName: string;
+  albumName: string;
+  coverUrl: string;
+}
+
+export interface DeezerTrack {
+  trackNumber: number;
+  title: string;
+  duration: string;
+}
+
+export const MAX_TAPE_FAVORITES = 5;
+
 export type TapeInstance = {
   id: string;
   index: number;
@@ -59,12 +73,12 @@ export type TapeInstance = {
   rotation: number;
   isAnchor: boolean;
   albumIndex: number;
-  // Tambahan metadata kaset real dari Deezer
   isRealData?: boolean;
+  albumId?: string;
   artistName?: string;
   albumName?: string;
   coverUrl?: string;
-  trackTitle?: string;
-  duration?: string;
+  tracks?: DeezerTrack[];
+  favoriteTrackNumbers?: number[];
   customBg?: string;
 };

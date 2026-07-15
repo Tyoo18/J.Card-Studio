@@ -4,7 +4,7 @@ import Navbar from "./Navbar";
 import HeroHeader from "./HeroHeader";
 import FocusPanel from "./FocusPanel";
 import CassetteTape from "./CassetteTape";
-import type { Album } from "./data";
+import type { Album, DeezerTrack } from "./data";
 import { albumDataset } from "./data";
 import { useStudioMapEngine } from "./useStudioMapEngine";
 
@@ -19,11 +19,19 @@ export default function StudioMap() {
     focusedAlbum,
     focusTape,
     resetTapeFocus,
+    toggleFavoriteTrack,
+    pulsingTapeId,
   } = engine;
 
-  // [VALIDATE]: Tambah optional chaining pada pencarian data tape biar aman dari error runtime
   const getMappedAlbumData = (tape: any): Album => {
     if (tape?.isRealData) {
+      const favoriteNumbers: number[] = tape.favoriteTrackNumbers || [];
+      const orderedFavorites: DeezerTrack[] = favoriteNumbers
+        .map((num) =>
+          (tape.tracks || []).find((t: DeezerTrack) => t.trackNumber === num),
+        )
+        .filter(Boolean) as DeezerTrack[];
+
       return {
         title: tape.albumName || "Unknown Album",
         artist: tape.artistName || "Unknown Artist",
@@ -32,19 +40,29 @@ export default function StudioMap() {
         cover:
           tape.coverUrl ||
           "https://images.unsplash.com/photo-1507838153414-b4b713384a76",
-        tracks: [tape.trackTitle || "Track Title"],
+        tracks: orderedFavorites.map((t) => t.title),
         isRealData: true,
+        albumId: tape.albumId,
       };
     }
 
-    // Fail-safe handler jika tape bernilai null/undefined
     const validIndex =
       tape && typeof tape.albumIndex === "number" ? tape.albumIndex : 0;
     return albumDataset[validIndex] || albumDataset[0];
   };
 
+  const activeTape = focusedAlbum
+    ? tapes.find((t) =>
+        focusedAlbum.albumId
+          ? t.albumId === focusedAlbum.albumId
+          : t.albumIndex ===
+            albumDataset.findIndex((a) => a.title === focusedAlbum.title),
+      )
+    : undefined;
+
   return (
     <>
+      {/* Vignette - hanya efek visual, tidak punya pointer events */}
       <div
         className={`fixed inset-0 pointer-events-none z-10 transition-opacity duration-1000
           ${isFocused ? "opacity-100" : "opacity-0"}`}
@@ -68,7 +86,7 @@ export default function StudioMap() {
         selectAlbum={engine.selectAlbum}
         confirmAndSpawnRealTape={engine.confirmAndSpawnRealTape}
         resetSearchFlow={engine.resetSearchFlow}
-        handleBackToAlbums={engine.handleBackToAlbums} // <-- Oper prop barunya ke mari
+        handleBackToAlbums={engine.handleBackToAlbums}
       />
 
       <HeroHeader focused={isFocused} />
@@ -76,21 +94,16 @@ export default function StudioMap() {
       <FocusPanel
         ref={focusPanelRef}
         isFocused={isFocused}
-        album={
-          focusedAlbum
-            ? getMappedAlbumData(
-                tapes.find(
-                  (t) =>
-                    t.id === focusedAlbum.title ||
-                    t.albumIndex ===
-                      albumDataset.findIndex(
-                        (a) => a.title === focusedAlbum.title,
-                      ),
-                ),
-              )
-            : null
-        }
+        album={activeTape ? getMappedAlbumData(activeTape) : null}
         onClose={resetTapeFocus}
+        fullTracks={activeTape?.isRealData ? activeTape.tracks : undefined}
+        favoriteTrackNumbers={activeTape?.favoriteTrackNumbers}
+        onToggleFavorite={
+          activeTape
+            ? (trackNumber: number) =>
+                toggleFavoriteTrack(activeTape.id, trackNumber)
+            : undefined
+        }
       />
 
       <div
@@ -110,6 +123,7 @@ export default function StudioMap() {
         >
           {tapes.map((tape) => {
             const finalAlbumData = getMappedAlbumData(tape);
+            const isThisTapeFocused = isFocused && tape.id === activeTape?.id;
             return (
               <CassetteTape
                 key={tape.id}
@@ -119,6 +133,8 @@ export default function StudioMap() {
                 top={tape.top}
                 rotation={tape.rotation}
                 onFocus={focusTape}
+                isPulsing={tape.id === pulsingTapeId}
+                isInteractionLocked={isFocused && !isThisTapeFocused}
               />
             );
           })}

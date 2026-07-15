@@ -1,42 +1,62 @@
 import { forwardRef } from "react";
-import type { Album } from "./data";
+import type { Album, DeezerTrack } from "./data";
+import { MAX_TAPE_FAVORITES } from "./data";
 import styles from "./studio-map.module.css";
 
 type FocusPanelProps = {
   isFocused: boolean;
   album: Album | null;
   onClose: () => void;
+  fullTracks?: DeezerTrack[];
+  favoriteTrackNumbers?: number[];
+  onToggleFavorite?: (trackNumber: number) => void;
 };
 
 function getTitleFontSize(title: string): string {
   const len = title.length;
-  if (len > 22) return "28px";
-  if (len > 16) return "36px";
-  return "46px";
+  if (len > 22) return "32px";
+  if (len > 16) return "42px";
+  if (len > 11) return "52px";
+  return "64px";
 }
 
 const FocusPanel = forwardRef<HTMLDivElement, FocusPanelProps>(
-  ({ isFocused, album, onClose }, ref) => {
+  (
+    {
+      isFocused,
+      album,
+      onClose,
+      fullTracks,
+      favoriteTrackNumbers,
+      onToggleFavorite,
+    },
+    ref,
+  ) => {
+    const favorites = favoriteTrackNumbers || [];
+    const atCap = favorites.length >= MAX_TAPE_FAVORITES;
+    const isRealTrackData = !!fullTracks;
+
     return (
       <div
         ref={ref}
-        className={`fixed bottom-0 right-12 w-100 h-screen py-20 flex flex-col justify-center z-100
-        transition-all duration-855 ease-out font-mono
-        ${isFocused ? "translate-x-0 opacity-100 pointer-events-auto" : "translate-x-12 opacity-0 pointer-events-none"}`}
+        onMouseDown={(e) => e.stopPropagation()} // 🔥 CEGAH event sampai ke window
+        className={`fixed top-0 w-115 h-screen py-15 flex flex-col justify-center z-100
+          transition-all duration-850 ease-out translate-x-15 opacity-0 pointer-events-none
+          ${isFocused ? "translate-x-0 opacity-100 pointer-events-auto" : ""}`}
       >
         {album && (
           <>
             <div className="flex items-center justify-between mb-4">
-              <div className="text-[10px] tracking-[2px] text-[#e4ded24d] uppercase">
-                {album.isRealData
-                  ? "DEEZER DIGITAL ARCHIVE"
-                  : "LOCAL CACHED ARCHIVE"}
+              <div className="font-mono text-[10px] tracking-[2px] text-[#e4ded24d] uppercase">
+                {album.isRealData ? "" : `ALBUM ARCHITECTURE // ${album.title}`}
               </div>
               <button
                 onClick={onClose}
                 onMouseDown={(e) => e.stopPropagation()}
                 aria-label="Close focus panel"
-                className="w-6 h-6 flex items-center justify-center border border-[#e4ded226] rounded-xs text-[#e4ded280] hover:text-[#e4ded2] hover:border-[#e4ded24d] transition-colors cursor-pointer shrink-0"
+                className="w-6 h-6 flex items-center justify-center border border-[#e4ded226]
+                  rounded-sm text-[#e4ded280] hover:text-[#e4ded2] hover:border-[#e4ded24d]
+                  transition-colors cursor-pointer shrink-0"
               >
                 <svg
                   width="10"
@@ -52,7 +72,7 @@ const FocusPanel = forwardRef<HTMLDivElement, FocusPanelProps>(
             </div>
 
             <h1
-              className="serif-title leading-[1.1] mb-2 font-normal text-[#e4ded2]"
+              className="serif-title leading-[1.05] mb-2"
               style={{
                 fontSize: getTitleFontSize(album.title),
                 textWrap: "balance",
@@ -60,32 +80,102 @@ const FocusPanel = forwardRef<HTMLDivElement, FocusPanelProps>(
             >
               {album.title}
             </h1>
-            <h3 className="font-sans text-xs uppercase tracking-[2px] font-normal text-[#e4ded280] mb-6">
+            <h3 className="font-sans text-sm uppercase tracking-[2px] font-normal text-[#e4ded280] mb-8">
               {album.artist}
             </h3>
-            <hr className="border-none h-px bg-[#e4ded21a] mb-6" />
+            <hr className="border-none h-px bg-[#e4ded21a] mb-8" />
 
-            <div className="text-[10px] tracking-[1.5px] text-[#e4ded24d] uppercase mb-4">
-              Tracklist Content
-            </div>
-            <div
-              className={`flex flex-col gap-2 max-h-[340px] overflow-y-auto pr-2 ${styles.tracklistContainer}`}
-            >
-              {album.tracks.map((track, idx) => (
-                <div
-                  key={idx}
-                  className="group flex items-center justify-between h-13 px-4 bg-white/2 border border-white/5 rounded-xs transition-colors hover:bg-white/5"
-                >
-                  <div className="flex items-center text-[11px] tracking-wide uppercase">
-                    <span className="text-[#e4ded240] mr-4 text-[10px]">
-                      {idx < 9 ? `0${idx + 1}` : idx + 1}
-                    </span>
-                    <span className="font-normal text-[#e4ded2d9] text-ellipsis overflow-hidden max-w-64 white-space-nowrap">
-                      {track}
-                    </span>
-                  </div>
+            <div className="flex items-center justify-between mb-4.5">
+              <div className="font-mono text-[10px] tracking-[1.5px] text-[#e4ded24d] uppercase">
+                Tracklist Content
+              </div>
+              {isRealTrackData && (
+                <div className="font-mono text-[9px] tracking-wide text-[#e4ded240] uppercase">
+                  {favorites.length}/{MAX_TAPE_FAVORITES} on tape
                 </div>
-              ))}
+              )}
+            </div>
+
+            <div
+              className={`flex flex-col gap-2 overflow-y-auto pr-2.5 ${styles.tracklistContainer}`}
+              style={{ maxHeight: "190px" }}
+            >
+              {isRealTrackData
+                ? fullTracks!.map((track) => {
+                    const isFav = favorites.includes(track.trackNumber);
+                    const disabled = atCap && !isFav;
+                    return (
+                      <div
+                        key={track.trackNumber}
+                        onMouseDown={(e) => e.stopPropagation()}
+                        className="shrink-0 flex items-center justify-between h-14.5 px-5 bg-white/1.5 border border-white/3 rounded transition-colors hover:bg-white/4 hover:border-[#e4ded226]"
+                      >
+                        <div className="flex items-center font-mono text-[11px] tracking-wide uppercase overflow-hidden">
+                          <span className="text-[#e4ded240] mr-4.5 text-[10px] shrink-0">
+                            0{track.trackNumber}
+                          </span>
+                          <span className="font-normal text-[#e4ded2d9] truncate">
+                            {track.title}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-3 shrink-0">
+                          <span className="font-mono text-[9px] text-[#e4ded240]">
+                            {track.duration}
+                          </span>
+                          <button
+                            onMouseDown={(e) => e.stopPropagation()}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              if (!disabled)
+                                onToggleFavorite?.(track.trackNumber);
+                            }}
+                            disabled={disabled}
+                            type="button"
+                            aria-label={
+                              isFav ? "Remove from tape" : "Add to tape"
+                            }
+                            title={
+                              disabled
+                                ? `Tape penuh (maks ${MAX_TAPE_FAVORITES} lagu)`
+                                : isFav
+                                  ? "Keluarkan dari tape"
+                                  : "Tambahkan ke tape"
+                            }
+                            className={`w-8 h-8 flex items-center justify-center transition-colors
+                              ${isFav ? "text-[#e2b865]" : "text-[#e4ded230]"}
+                              ${disabled ? "cursor-not-allowed opacity-40" : "cursor-pointer hover:text-[#e2b865]"}`}
+                          >
+                            <svg
+                              width="12"
+                              height="12"
+                              viewBox="0 0 24 24"
+                              fill={isFav ? "currentColor" : "none"}
+                              stroke="currentColor"
+                              strokeWidth="1.5"
+                            >
+                              <path d="M12 2l2.9 6.26 6.9.6-5.2 4.53 1.6 6.76L12 16.9l-6.2 3.25 1.6-6.76-5.2-4.53 6.9-.6L12 2z" />
+                            </svg>
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })
+                : album.tracks.map((track, idx) => (
+                    <div
+                      key={track}
+                      onMouseDown={(e) => e.stopPropagation()}
+                      className="shrink-0 flex items-center justify-between h-14.5 px-5 bg-white/1.5 border border-white/3 rounded transition-colors hover:bg-white/4 hover:border-[#e4ded226]"
+                    >
+                      <div className="flex items-center font-mono text-[11px] tracking-wide uppercase">
+                        <span className="text-[#e4ded240] mr-4.5 text-[10px]">
+                          0{idx + 1}
+                        </span>
+                        <span className="font-normal text-[#e4ded2d9]">
+                          {track}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
             </div>
           </>
         )}
@@ -95,4 +185,5 @@ const FocusPanel = forwardRef<HTMLDivElement, FocusPanelProps>(
 );
 
 FocusPanel.displayName = "FocusPanel";
+
 export default FocusPanel;
