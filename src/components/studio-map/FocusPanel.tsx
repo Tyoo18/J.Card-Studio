@@ -1,4 +1,4 @@
-import { forwardRef } from "react";
+import { forwardRef, useEffect, useRef, useState } from "react";
 import type { TapeInstance, DeezerTrack } from "./data";
 import { MAX_TAPE_FAVORITES } from "./data";
 import styles from "./studio-map.module.css";
@@ -38,6 +38,33 @@ const FocusPanel = forwardRef<HTMLDivElement, FocusPanelProps>(
     const albumTitle = album?.albumName || "Unknown Album";
     const albumArtist = album?.artistName || "Unknown Artist";
 
+    const audioRef = useRef<HTMLAudioElement>(null);
+    const [playingTrackNumber, setPlayingTrackNumber] = useState<number | null>(
+      null,
+    );
+
+    // Stop audio kalau panel ketutup atau pindah album
+    useEffect(() => {
+      if (!isFocused || !album) {
+        audioRef.current?.pause();
+        setPlayingTrackNumber(null);
+      }
+    }, [isFocused, album?.albumId]);
+
+    const handleTogglePreview = (track: DeezerTrack) => {
+      if (!track.previewUrl || !audioRef.current) return;
+
+      if (playingTrackNumber === track.trackNumber) {
+        audioRef.current.pause();
+        setPlayingTrackNumber(null);
+        return;
+      }
+
+      audioRef.current.src = track.previewUrl;
+      audioRef.current.play().catch(() => setPlayingTrackNumber(null));
+      setPlayingTrackNumber(track.trackNumber);
+    };
+
     return (
       <div
         ref={ref}
@@ -46,6 +73,19 @@ const FocusPanel = forwardRef<HTMLDivElement, FocusPanelProps>(
           transition-all duration-850 ease-out
           ${isFocused ? "opacity-100 pointer-events-auto translate-x-0" : "opacity-0 pointer-events-none translate-x-3.75"}`}
       >
+        <audio
+          ref={audioRef}
+          onEnded={() => setPlayingTrackNumber(null)}
+          onPause={() =>
+            setPlayingTrackNumber((current) => {
+              // Kalau pause dipicu dari luar (bukan tombol), tetap sinkronkan icon
+              return audioRef.current && !audioRef.current.ended
+                ? current
+                : null;
+            })
+          }
+        />
+
         {album && (
           <>
             <div className="flex items-center justify-end mb-4">
@@ -99,6 +139,9 @@ const FocusPanel = forwardRef<HTMLDivElement, FocusPanelProps>(
               {tracks.map((track) => {
                 const isFav = favorites.includes(track.trackNumber);
                 const disabled = atCap && !isFav;
+                const isPlaying = playingTrackNumber === track.trackNumber;
+                const hasPreview = !!track.previewUrl;
+
                 return (
                   <div
                     key={track.trackNumber}
@@ -116,6 +159,48 @@ const FocusPanel = forwardRef<HTMLDivElement, FocusPanelProps>(
                       <span className="font-mono text-[9px] text-[#e4ded240]">
                         {track.duration}
                       </span>
+
+                      <button
+                        onMouseDown={(e) => e.stopPropagation()}
+                        onClick={() => handleTogglePreview(track)}
+                        disabled={!hasPreview}
+                        type="button"
+                        aria-label={
+                          isPlaying ? "Pause preview" : "Play preview"
+                        }
+                        title={
+                          hasPreview
+                            ? isPlaying
+                              ? "Pause preview"
+                              : "Putar preview 30 detik"
+                            : "Preview tidak tersedia"
+                        }
+                        className={`w-8 h-8 flex items-center justify-center transition-colors
+                          ${isPlaying ? "text-[#e4ded2]" : "text-[#e4ded230]"}
+                          ${!hasPreview ? "cursor-not-allowed opacity-30" : "cursor-pointer hover:text-[#e4ded2]"}`}
+                      >
+                        {isPlaying ? (
+                          <svg
+                            width="11"
+                            height="11"
+                            viewBox="0 0 24 24"
+                            fill="currentColor"
+                          >
+                            <rect x="5" y="4" width="5" height="16" rx="1" />
+                            <rect x="14" y="4" width="5" height="16" rx="1" />
+                          </svg>
+                        ) : (
+                          <svg
+                            width="11"
+                            height="11"
+                            viewBox="0 0 24 24"
+                            fill="currentColor"
+                          >
+                            <path d="M6 4l14 8-14 8V4z" />
+                          </svg>
+                        )}
+                      </button>
+
                       <button
                         onMouseDown={(e) => e.stopPropagation()}
                         onClick={() => {

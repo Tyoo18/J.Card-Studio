@@ -35,17 +35,16 @@ export async function GET(request: Request) {
     // [FORMAT]: Saring daftar lagu dari objek tracks.data milik Deezer
     const rawTracks = data.tracks?.data || [];
     const tracks = rawTracks.map((track: any, index: number) => {
-      // [CALC]: Hitung durasi detik mentah dari Deezer menjadi format string mm:ss
       const durationSeconds = track.duration || 0;
       const minutes = Math.floor(durationSeconds / 60);
       const seconds = durationSeconds % 60;
       const formattedDuration = `${minutes.toString().padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`;
 
       return {
-        // [UTIL]: Gunakan track_position bawaan atau fallback ke index loop + 1
         trackNumber: track.track_position || index + 1,
         title: track.title,
         duration: formattedDuration,
+        previewUrl: track.preview || undefined,
       };
     });
 

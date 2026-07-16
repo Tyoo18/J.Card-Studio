@@ -9,6 +9,7 @@ export interface DeezerTrack {
   trackNumber: number;
   title: string;
   duration: string;
+  previewUrl?: string;
 }
 
 export const MAX_TAPE_FAVORITES = 5;
