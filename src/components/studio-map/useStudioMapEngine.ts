@@ -2,8 +2,6 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
-  albumDataset,
-  type Album,
   type TapeInstance,
   type DeezerAlbum,
   type DeezerTrack,
@@ -63,7 +61,7 @@ export function useStudioMapEngine() {
 
   const [tapes, setTapes] = useState<TapeInstance[]>([]);
   const [isFocused, setIsFocused] = useState(false);
-  const [focusedAlbum, setFocusedAlbum] = useState<Album | null>(null);
+  const [focusedAlbum, setFocusedAlbum] = useState<TapeInstance | null>(null);
 
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<DeezerAlbum[]>([]);
@@ -200,8 +198,8 @@ export function useStudioMapEngine() {
     (
       col: number,
       row: number,
-      isAnchor = false,
-      realData?: {
+      isAnchor: boolean,
+      realData: {
         album: DeezerAlbum;
         tracks: DeezerTrack[];
         customBg?: string;
@@ -235,8 +233,6 @@ export function useStudioMapEngine() {
         rotation = -3;
       }
 
-      const albumIndex = (tapeCount.current - 1) % albumDataset.length;
-
       setTapes((prev) => [
         ...prev,
         {
@@ -248,31 +244,18 @@ export function useStudioMapEngine() {
           top: baseTop + jitterY,
           rotation,
           isAnchor,
-          albumIndex,
-          isRealData: !!realData,
-          albumId: realData?.album.albumId,
-          artistName: realData?.album.artistName,
-          albumName: realData?.album.albumName,
-          coverUrl: realData?.album.coverUrl,
-          tracks: realData?.tracks || [],
-          favoriteTrackNumbers: realData
-            ? realData.tracks.map((t) => t.trackNumber)
-            : undefined,
-          customBg: realData?.customBg || "#1e1e24",
+          albumId: realData.album.albumId,
+          artistName: realData.album.artistName,
+          albumName: realData.album.albumName,
+          coverUrl: realData.album.coverUrl,
+          tracks: realData.tracks,
+          favoriteTrackNumbers: realData.tracks.map((t) => t.trackNumber),
+          customBg: realData.customBg || "#1e1e24",
         },
       ]);
     },
     [],
   );
-
-  const addRandomTape = useCallback(() => {
-    if (activeTapeRef.current) return;
-    const openSlots = getAvailableDiagonalNeighbors();
-    if (openSlots.length === 0) return;
-    const randomSlot = openSlots[Math.floor(Math.random() * openSlots.length)];
-    const [col, row] = randomSlot.split(",").map(Number);
-    spawnTapeInGrid(col, row);
-  }, [getAvailableDiagonalNeighbors, spawnTapeInGrid]);
 
   const searchAlbums = async (queryText: string) => {
     if (!queryText.trim()) return;
@@ -323,7 +306,7 @@ export function useStudioMapEngine() {
       if (!selectedAlbum) return;
 
       const existingTape = tapes.find(
-        (t) => t.isRealData && t.albumId === selectedAlbum.albumId,
+        (t) => t.albumId === selectedAlbum.albumId,
       );
 
       if (existingTape) {
@@ -335,17 +318,13 @@ export function useStudioMapEngine() {
                 existingTrack.trackNumber === track.trackNumber,
             );
             if (alreadyHasTrack) return t;
-            return {
-              ...t,
-              tracks: [...(t.tracks || []), track],
-            };
+            return { ...t, tracks: [...(t.tracks || []), track] };
           }),
         );
         triggerTapePulse(existingTape.id);
       } else {
         let col: number, row: number;
         if (tapes.length === 0) {
-          // Tape pertama, tempatkan di (0,0)
           col = 0;
           row = 0;
         } else {
@@ -541,7 +520,7 @@ export function useStudioMapEngine() {
     tapes,
     isFocused,
     focusedAlbum,
-    addRandomTape,
+    // addRandomTape DIHAPUS dari return
     focusTape,
     resetTapeFocus,
     toggleFavoriteTrack,

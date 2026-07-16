@@ -4,8 +4,7 @@ import Navbar from "./Navbar";
 import HeroHeader from "./HeroHeader";
 import FocusPanel from "./FocusPanel";
 import CassetteTape from "./CassetteTape";
-import type { Album, DeezerTrack } from "./data";
-import { albumDataset } from "./data";
+import type { DeezerTrack } from "./data";
 import { useStudioMapEngine } from "./useStudioMapEngine";
 
 export default function StudioMap() {
@@ -23,46 +22,8 @@ export default function StudioMap() {
     pulsingTapeId,
   } = engine;
 
-  const getMappedAlbumData = (tape: any): Album => {
-    if (tape?.isRealData) {
-      const favoriteNumbers: number[] = tape.favoriteTrackNumbers || [];
-      const orderedFavorites: DeezerTrack[] = favoriteNumbers
-        .map((num) =>
-          (tape.tracks || []).find((t: DeezerTrack) => t.trackNumber === num),
-        )
-        .filter(Boolean) as DeezerTrack[];
-
-      return {
-        title: tape.albumName || "Unknown Album",
-        artist: tape.artistName || "Unknown Artist",
-        bg: tape.customBg || "#1e1e24",
-        text: "#f4efe6",
-        cover:
-          tape.coverUrl ||
-          "https://images.unsplash.com/photo-1507838153414-b4b713384a76",
-        tracks: orderedFavorites.map((t) => t.title),
-        isRealData: true,
-        albumId: tape.albumId,
-      };
-    }
-
-    const validIndex =
-      tape && typeof tape.albumIndex === "number" ? tape.albumIndex : 0;
-    return albumDataset[validIndex] || albumDataset[0];
-  };
-
-  // Perbaikan: pencarian activeTape lebih robust
   const activeTape = focusedAlbum
-    ? tapes.find((t) => {
-        if (focusedAlbum.isRealData && t.isRealData) {
-          return t.albumId === focusedAlbum.albumId;
-        }
-        // fallback untuk dummy (tidak ada dummy lagi)
-        return (
-          t.albumIndex ===
-          albumDataset.findIndex((a) => a.title === focusedAlbum.title)
-        );
-      })
+    ? tapes.find((t) => t.albumId === focusedAlbum.albumId)
     : undefined;
 
   return (
@@ -98,9 +59,9 @@ export default function StudioMap() {
       <FocusPanel
         ref={focusPanelRef}
         isFocused={isFocused}
-        album={activeTape ? getMappedAlbumData(activeTape) : null}
+        album={activeTape || null}
         onClose={resetTapeFocus}
-        fullTracks={activeTape?.isRealData ? activeTape.tracks : undefined}
+        fullTracks={activeTape?.tracks}
         favoriteTrackNumbers={activeTape?.favoriteTrackNumbers}
         onToggleFavorite={
           activeTape
@@ -125,21 +86,18 @@ export default function StudioMap() {
             backgroundSize: "40px 40px",
           }}
         >
-          {tapes.map((tape) => {
-            const finalAlbumData = getMappedAlbumData(tape);
-            return (
-              <CassetteTape
-                key={tape.id}
-                data={finalAlbumData}
-                index={tape.index}
-                left={tape.left}
-                top={tape.top}
-                rotation={tape.rotation}
-                onFocus={focusTape}
-                isPulsing={tape.id === pulsingTapeId}
-              />
-            );
-          })}
+          {tapes.map((tape) => (
+            <CassetteTape
+              key={tape.id}
+              data={tape}
+              index={tape.index}
+              left={tape.left}
+              top={tape.top}
+              rotation={tape.rotation}
+              onFocus={focusTape}
+              isPulsing={tape.id === pulsingTapeId}
+            />
+          ))}
         </div>
       </div>
     </>

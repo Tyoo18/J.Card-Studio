@@ -1,5 +1,5 @@
 import { useMemo, useRef } from "react";
-import type { Album } from "./data";
+import type { TapeInstance } from "./data";
 import JCard from "./JCard";
 import styles from "./studio-map.module.css";
 
@@ -7,7 +7,7 @@ export type TapeFocusPayload = {
   wrapper: HTMLDivElement;
   card: HTMLDivElement;
   shine: HTMLDivElement;
-  data: Album;
+  data: TapeInstance;
   index: number;
   baseLeft: number;
   baseTop: number;
@@ -15,7 +15,7 @@ export type TapeFocusPayload = {
 };
 
 type CassetteTapeProps = {
-  data: Album;
+  data: TapeInstance;
   index: number;
   left: number;
   top: number;
@@ -27,6 +27,7 @@ type CassetteTapeProps = {
 const SLICE_COUNT = 30;
 const MIN_Z = -25;
 const MAX_Z = 25;
+const FALLBACK_BG = "#1e1e24";
 
 export default function CassetteTape({
   data,
@@ -41,11 +42,14 @@ export default function CassetteTape({
   const cardRef = useRef<HTMLDivElement>(null);
   const shineRef = useRef<HTMLDivElement>(null);
 
+  const bgColor = data.customBg || FALLBACK_BG;
+
   const slices = useMemo(() => {
-    const hex = data.bg.replace("#", "");
-    const rBase = parseInt(hex.substring(0, 2), 16);
-    const gBase = parseInt(hex.substring(2, 4), 16);
-    const bBase = parseInt(hex.substring(4, 6), 16);
+    const hex = bgColor.replace("#", "");
+    const isHex = /^[0-9a-fA-F]{6}$/.test(hex);
+    const rBase = isHex ? parseInt(hex.substring(0, 2), 16) : 30;
+    const gBase = isHex ? parseInt(hex.substring(2, 4), 16) : 30;
+    const bBase = isHex ? parseInt(hex.substring(4, 6), 16) : 36;
 
     return Array.from({ length: SLICE_COUNT - 1 }, (_, idx) => {
       const i = idx + 1;
@@ -56,7 +60,7 @@ export default function CassetteTape({
       const b = Math.round(bBase * factor);
       return { zVal, color: `rgb(${r}, ${g}, ${b})` };
     });
-  }, [data.bg]);
+  }, [bgColor]);
 
   const handleClick = () => {
     if (!wrapperRef.current || !cardRef.current || !shineRef.current) return;
@@ -73,15 +77,7 @@ export default function CassetteTape({
   };
 
   return (
-    <div
-      ref={wrapperRef}
-      className={styles.dummyTape}
-      style={{
-        left,
-        top,
-        // pointerEvents dihapus, biarkan default auto
-      }}
-    >
+    <div ref={wrapperRef} className={styles.dummyTape} style={{ left, top }}>
       <div
         ref={cardRef}
         className={`${styles.cassetteCard} ${isPulsing ? styles.tapePulse : ""}`}
@@ -104,7 +100,7 @@ export default function CassetteTape({
         </div>
 
         <div className={styles.innerBlock}>
-          <div className={styles.innerBack} style={{ background: data.bg }} />
+          <div className={styles.innerBack} style={{ background: bgColor }} />
           {slices.map((slice, i) => (
             <div
               key={i}
