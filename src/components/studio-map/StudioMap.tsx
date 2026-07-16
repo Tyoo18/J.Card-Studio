@@ -51,18 +51,22 @@ export default function StudioMap() {
     return albumDataset[validIndex] || albumDataset[0];
   };
 
+  // Perbaikan: pencarian activeTape lebih robust
   const activeTape = focusedAlbum
-    ? tapes.find((t) =>
-        focusedAlbum.albumId
-          ? t.albumId === focusedAlbum.albumId
-          : t.albumIndex ===
-            albumDataset.findIndex((a) => a.title === focusedAlbum.title),
-      )
+    ? tapes.find((t) => {
+        if (focusedAlbum.isRealData && t.isRealData) {
+          return t.albumId === focusedAlbum.albumId;
+        }
+        // fallback untuk dummy (tidak ada dummy lagi)
+        return (
+          t.albumIndex ===
+          albumDataset.findIndex((a) => a.title === focusedAlbum.title)
+        );
+      })
     : undefined;
 
   return (
     <>
-      {/* Vignette - hanya efek visual, tidak punya pointer events */}
       <div
         className={`fixed inset-0 pointer-events-none z-10 transition-opacity duration-1000
           ${isFocused ? "opacity-100" : "opacity-0"}`}
@@ -100,8 +104,8 @@ export default function StudioMap() {
         favoriteTrackNumbers={activeTape?.favoriteTrackNumbers}
         onToggleFavorite={
           activeTape
-            ? (trackNumber: number) =>
-                toggleFavoriteTrack(activeTape.id, trackNumber)
+            ? (track: DeezerTrack) =>
+                toggleFavoriteTrack(activeTape.id, track.trackNumber)
             : undefined
         }
       />
@@ -123,7 +127,6 @@ export default function StudioMap() {
         >
           {tapes.map((tape) => {
             const finalAlbumData = getMappedAlbumData(tape);
-            const isThisTapeFocused = isFocused && tape.id === activeTape?.id;
             return (
               <CassetteTape
                 key={tape.id}
@@ -134,7 +137,6 @@ export default function StudioMap() {
                 rotation={tape.rotation}
                 onFocus={focusTape}
                 isPulsing={tape.id === pulsingTapeId}
-                isInteractionLocked={isFocused && !isThisTapeFocused}
               />
             );
           })}

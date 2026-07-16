@@ -12,7 +12,6 @@ type FocusPanelProps = {
   onToggleFavorite?: (track: DeezerTrack) => void;
 };
 
-// [UTIL]: Kalkulasi ukuran font judul secara dinamis
 function getTitleFontSize(title: string): string {
   const len = title.length;
   if (len > 22) return "32px";
@@ -38,12 +37,12 @@ const FocusPanel = forwardRef<HTMLDivElement, FocusPanelProps>(
     const isRealTrackData = !!fullTracks;
 
     return (
-      // [STYLE]: Fix z-[100] untuk block canvas click-through & manajemen interaksi kursor mouse
       <div
         ref={ref}
+        onMouseDown={(e) => e.stopPropagation()} // Cegah event sampai ke window
         className={`fixed top-1/2 -translate-y-1/2 w-115 h-fit max-h-[85vh] py-8 flex flex-col justify-center z-900
-          transition-all duration-850 ease-out opacity-0 pointer-events-none
-          ${isFocused ? "translate-x-0 opacity-100 pointer-events-auto" : "translate-x-15"}`}
+          transition-all duration-850 ease-out
+          ${isFocused ? "opacity-100 pointer-events-auto translate-x-0" : "opacity-0 pointer-events-none translate-x-3.75"}`}
       >
         {album && (
           <>
@@ -53,6 +52,7 @@ const FocusPanel = forwardRef<HTMLDivElement, FocusPanelProps>(
               </div>
               <button
                 onClick={onClose}
+                onMouseDown={(e) => e.stopPropagation()}
                 aria-label="Close focus panel"
                 className="w-6 h-6 flex items-center justify-center border border-[#e4ded226]
                   rounded-sm text-[#e4ded280] hover:text-[#e4ded2] hover:border-[#e4ded24d]
@@ -96,7 +96,6 @@ const FocusPanel = forwardRef<HTMLDivElement, FocusPanelProps>(
               )}
             </div>
 
-            {/* [STYLE]: max-h-[176px] diset presisi memotong lagu ke-4 di tengah jalan sebagai visual hint scroll */}
             <div
               className={`flex flex-col gap-2 overflow-y-auto pr-2.5 max-h-44 mb-5 ${styles.tracklistContainer}`}
             >
@@ -105,7 +104,6 @@ const FocusPanel = forwardRef<HTMLDivElement, FocusPanelProps>(
                     const isFav = favorites.includes(track.trackNumber);
                     const disabled = atCap && !isFav;
                     return (
-                      // [RENDER]: Baris lagu dibuat lebih ramping (h-11) demi estetika layout premium
                       <div
                         key={track.trackNumber}
                         className="shrink-0 flex items-center justify-between h-11 px-4 bg-white/1.5 border border-white/3 rounded transition-colors hover:bg-white/4 hover:border-[#e4ded226]"
@@ -123,6 +121,7 @@ const FocusPanel = forwardRef<HTMLDivElement, FocusPanelProps>(
                             {track.duration}
                           </span>
                           <button
+                            onMouseDown={(e) => e.stopPropagation()}
                             onClick={() => {
                               if (!disabled) onToggleFavorite?.(track);
                             }}

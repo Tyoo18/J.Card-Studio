@@ -22,7 +22,6 @@ type CassetteTapeProps = {
   rotation: number;
   onFocus: (payload: TapeFocusPayload) => void;
   isPulsing?: boolean;
-  isInteractionLocked?: boolean;
 };
 
 const SLICE_COUNT = 30;
@@ -37,7 +36,6 @@ export default function CassetteTape({
   rotation,
   onFocus,
   isPulsing,
-  isInteractionLocked,
 }: CassetteTapeProps) {
   const wrapperRef = useRef<HTMLDivElement>(null);
   const cardRef = useRef<HTMLDivElement>(null);
@@ -81,7 +79,7 @@ export default function CassetteTape({
       style={{
         left,
         top,
-        pointerEvents: isInteractionLocked ? "none" : "auto",
+        // pointerEvents dihapus, biarkan default auto
       }}
     >
       <div

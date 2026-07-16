@@ -256,7 +256,7 @@ export function useStudioMapEngine() {
           coverUrl: realData?.album.coverUrl,
           tracks: realData?.tracks || [],
           favoriteTrackNumbers: realData
-            ? realData.tracks.map((t) => t.trackNumber) // hanya untuk tape baru, initial favorit dari track yang dipilih
+            ? realData.tracks.map((t) => t.trackNumber)
             : undefined,
           customBg: realData?.customBg || "#1e1e24",
         },
@@ -318,9 +318,6 @@ export function useStudioMapEngine() {
     }
   };
 
-  // ============================================================
-  // PERBAIKAN: confirmAndSpawnRealTape - hanya track pertama otomatis favorit
-  // ============================================================
   const confirmAndSpawnRealTape = useCallback(
     (track: DeezerTrack, customBgColor: string) => {
       if (!selectedAlbum) return;
@@ -338,7 +335,6 @@ export function useStudioMapEngine() {
                 existingTrack.trackNumber === track.trackNumber,
             );
             if (alreadyHasTrack) return t;
-            // ❌ JANGAN ubah favoriteTrackNumbers – hanya tambah ke tracks
             return {
               ...t,
               tracks: [...(t.tracks || []), track],
@@ -347,11 +343,18 @@ export function useStudioMapEngine() {
         );
         triggerTapePulse(existingTape.id);
       } else {
-        const openSlots = getAvailableDiagonalNeighbors();
-        if (openSlots.length === 0) return;
-        const randomSlot =
-          openSlots[Math.floor(Math.random() * openSlots.length)];
-        const [col, row] = randomSlot.split(",").map(Number);
+        let col: number, row: number;
+        if (tapes.length === 0) {
+          // Tape pertama, tempatkan di (0,0)
+          col = 0;
+          row = 0;
+        } else {
+          const openSlots = getAvailableDiagonalNeighbors();
+          if (openSlots.length === 0) return;
+          const randomSlot =
+            openSlots[Math.floor(Math.random() * openSlots.length)];
+          [col, row] = randomSlot.split(",").map(Number);
+        }
         const newGridKey = `${col},${row}`;
 
         spawnTapeInGrid(col, row, false, {
@@ -360,7 +363,6 @@ export function useStudioMapEngine() {
           customBg: customBgColor,
         });
 
-        // ✅ Hanya track pertama yang otomatis jadi favorit
         setTapes((prev) =>
           prev.map((t) =>
             t.id === newGridKey
@@ -416,7 +418,7 @@ export function useStudioMapEngine() {
     panY.current = (window.innerHeight - CANVAS_SIZE * scale.current) / 2;
     updateTransform();
 
-    spawnTapeInGrid(0, 0, true);
+    // Tidak ada tape dummy
 
     const viewport = viewportRef.current;
     if (!viewport) return;
@@ -500,9 +502,6 @@ export function useStudioMapEngine() {
       }
     };
 
-    // ============================================================
-    // PERBAIKAN: handleOutsideMouseDown - deteksi panel
-    // ============================================================
     const handleOutsideMouseDown = (e: MouseEvent) => {
       const active = activeTapeRef.current;
       if (!active || isTransitioning.current) return;
