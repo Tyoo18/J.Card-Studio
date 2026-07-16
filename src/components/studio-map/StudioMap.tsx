@@ -39,6 +39,7 @@ export default function StudioMap() {
       />
 
       <Navbar
+        coverColor={engine.coverColor}
         focused={isFocused}
         searchQuery={engine.searchQuery}
         setSearchQuery={engine.setSearchQuery}

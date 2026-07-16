@@ -2,8 +2,10 @@
 
 import { useRef, useEffect } from "react";
 import type { DeezerAlbum, DeezerTrack } from "./useStudioMapEngine";
+import { randomFallbackColor } from "./colorExtractor";
 
 type NavbarProps = {
+  coverColor: string | null;
   focused: boolean;
   searchQuery: string;
   setSearchQuery: (q: string) => void;
@@ -20,6 +22,7 @@ type NavbarProps = {
 };
 
 export default function Navbar({
+  coverColor,
   focused,
   searchQuery,
   setSearchQuery,
@@ -190,9 +193,8 @@ export default function Navbar({
                     <div
                       key={track.trackNumber}
                       onClick={() => {
-                        const randomHue = Math.floor(Math.random() * 360);
-                        const customBgColor = `hsl(${randomHue}, 35%, 16%)`;
-                        confirmAndSpawnRealTape(track, customBgColor);
+                        const finalColor = coverColor || randomFallbackColor();
+                        confirmAndSpawnRealTape(track, finalColor);
                       }}
                       className="flex justify-between items-center p-2 rounded-xs cursor-pointer bg-white/1 hover:bg-white/5 border border-transparent hover:border-white/5 text-[10px] transition-all"
                     >

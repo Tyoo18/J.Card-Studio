@@ -9,6 +9,7 @@ import {
 } from "./data";
 import type { TapeFocusPayload } from "./CassetteTape";
 import styles from "./studio-map.module.css";
+import { extractDominantColor } from "./colorExtractor";
 
 export type { DeezerAlbum, DeezerTrack };
 
@@ -62,6 +63,7 @@ export function useStudioMapEngine() {
   const [tapes, setTapes] = useState<TapeInstance[]>([]);
   const [isFocused, setIsFocused] = useState(false);
   const [focusedAlbum, setFocusedAlbum] = useState<TapeInstance | null>(null);
+  const [coverColor, setCoverColor] = useState<string | null>(null);
 
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<DeezerAlbum[]>([]);
@@ -288,6 +290,11 @@ export function useStudioMapEngine() {
     setEngineError(null);
     setTracklist([]);
     setSelectedTrack(null);
+    setCoverColor(null);
+
+    extractDominantColor(album.coverUrl)
+      .then(setCoverColor)
+      .catch(() => setCoverColor(null));
 
     try {
       const res = await fetch(`/api/album?id=${album.albumId}`);
@@ -390,6 +397,7 @@ export function useStudioMapEngine() {
     setTracklist([]);
     setSelectedTrack(null);
     setEngineError(null);
+    setCoverColor(null);
   };
 
   useEffect(() => {
@@ -518,6 +526,7 @@ export function useStudioMapEngine() {
     canvasRef,
     focusPanelRef,
     tapes,
+    coverColor,
     isFocused,
     focusedAlbum,
     // addRandomTape DIHAPUS dari return
