@@ -135,7 +135,7 @@ export function useStudioMapEngine() {
       canvasRef.current?.classList.add(styles.smoothTransition);
       updateTransform();
 
-      payload.card.style.transform = `rotateX(0deg) rotateY(0deg) rotateZ(0deg) scaleZ(1)`;
+      payload.card.style.transform = `rotateX(0deg) rotateY(0deg) rotateZ(0deg)`;
 
       setTimeout(() => {
         if (activeTapeRef.current) {
@@ -155,7 +155,7 @@ export function useStudioMapEngine() {
     active.card.classList.remove(styles.instantlyResponsive);
     setIsFocused(false);
 
-    active.card.style.transform = `rotateZ(${active.baseRotation}deg) scaleZ(0.001)`;
+    active.card.style.transform = `rotateZ(${active.baseRotation}deg)`;
     active.shine.style.background = `radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0) 65%)`;
 
     panX.current = active.origPanX;
@@ -417,6 +417,7 @@ export function useStudioMapEngine() {
       startY.current = e.clientY - panY.current;
     };
 
+    // [HANDLER]: Mouse tracking engine tanpa ngeberatin kalkulasi z-axis
     const handleMouseMove = (e: MouseEvent) => {
       if (isDragging.current && !activeTapeRef.current) {
         panX.current = e.clientX - startX.current;
@@ -426,33 +427,40 @@ export function useStudioMapEngine() {
       }
 
       const active = activeTapeRef.current;
-      if (active && !isTransitioning.current) {
-        const viewW = window.innerWidth;
-        const viewH = window.innerHeight;
-        const tapeWidth3D = TAPE_W * FOCUS_SCALE;
-        const totalWidth = tapeWidth3D + FOCUS_GAP + FOCUS_PANEL_WIDTH;
-        const leftMargin = (viewW - totalWidth) / 2;
+      if (!active || isTransitioning.current) return;
 
-        const xc = (e.clientX - (leftMargin + tapeWidth3D / 2)) / (viewW * 0.5);
-        const yc = (viewH / 2 - e.clientY) / (viewH / 2);
+      const viewW = window.innerWidth;
+      const viewH = window.innerHeight;
+      const tapeWidth3D = TAPE_W * FOCUS_SCALE;
+      const totalWidth = tapeWidth3D + FOCUS_GAP + FOCUS_PANEL_WIDTH;
+      const leftMargin = (viewW - totalWidth) / 2;
 
-        active.card.style.transform = `rotateX(${yc * 22}deg) rotateY(${xc * 22}deg) rotateZ(0deg) scaleZ(1)`;
+      const xc = (e.clientX - (leftMargin + tapeWidth3D / 2)) / (viewW * 0.5);
+      const yc = (viewH / 2 - e.clientY) / (viewH / 2);
+
+      // Mencegah animasi CSS nabrak manipulasi JS pake RAF (Request Animation Frame)
+      requestAnimationFrame(() => {
+        // Double check state pas eksekusi frame
+        if (isTransitioning.current) return;
+
+        // ILANGIN scaleZ(1) DI SINI
+        active.card.style.transform = `rotateX(${yc * 22}deg) rotateY(${xc * 22}deg) rotateZ(0deg)`;
 
         const percentageX = (e.clientX / viewW) * 100;
         const percentageY = (e.clientY / viewH) * 100;
         const sweepX = (1 - e.clientX / viewW) * 100;
 
         active.shine.style.background = `
-          linear-gradient(135deg, 
-            rgba(255,255,255,0) 30%, 
-            rgba(255,255,255,0.04) 45%, 
-            rgba(255,255,255,0.12) 50%, 
-            rgba(255,255,255,0.04) 55%, 
-            rgba(255,255,255,0) 70%
-          ) ${sweepX}% 0% / 260% 100% no-repeat,
-          radial-gradient(circle at ${percentageX}% ${percentageY}, rgba(255, 255, 255, 0.12) 0%, rgba(255, 255, 255, 0) 65%)
-        `;
-      }
+      linear-gradient(135deg, 
+        rgba(255,255,255,0) 30%, 
+        rgba(255,255,255,0.04) 45%, 
+        rgba(255,255,255,0.12) 50%, 
+        rgba(255,255,255,0.04) 55%, 
+        rgba(255,255,255,0) 70%
+      ) ${sweepX}% 0% / 260% 100% no-repeat,
+      radial-gradient(circle at ${percentageX}% ${percentageY}, rgba(255, 255, 255, 0.12) 0%, rgba(255, 255, 255, 0) 65%)
+    `;
+      });
     };
 
     const handleMouseUp = () => {

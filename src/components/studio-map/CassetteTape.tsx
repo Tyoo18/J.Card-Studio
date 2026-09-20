@@ -82,7 +82,7 @@ export default function CassetteTape({
         ref={cardRef}
         className={`${styles.cassetteCard} ${isPulsing ? styles.tapePulse : ""}`}
         style={{
-          transform: `rotateZ(${rotation}deg) scaleZ(0.001)`,
+          transform: `rotateZ(${rotation}deg)`,
           ["--base-rotation" as any]: `${rotation}deg`,
         }}
         onClick={(e) => {
